@@ -92,9 +92,11 @@ describe('Task API', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveLength(2);
+      expect(response.body[0].title).toBe('Task 3');
+      expect(response.body[1].title).toBe('Task 4');
     });
 
-    test('returns an empty array when page exceeds available tasks', async () => {
+    test('returns empty array for a page beyond available tasks', async () => {
       taskService.create({ title: 'Task 1' });
 
       const response = await request(app)
@@ -251,6 +253,65 @@ describe('Task API', () => {
         done: 1,
         overdue: 0,
       });
+    });
+  });
+
+  describe('PATCH /tasks/:id/assign', () => {
+    test('assigns a task to a user', async () => {
+      const task = taskService.create({
+        title: 'Assign Me',
+      });
+
+      const response = await request(app)
+        .patch(`/tasks/${task.id}/assign`)
+        .send({
+          assignee: 'John',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(task.id);
+      expect(response.body.assignee).toBe('John');
+    });
+
+    test('returns 404 when the task does not exist', async () => {
+      const response = await request(app)
+        .patch('/tasks/missing-id/assign')
+        .send({
+          assignee: 'John',
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        error: 'Task not found',
+      });
+    });
+
+    test('returns 400 when assignee is empty', async () => {
+      const task = taskService.create({
+        title: 'Assign Me',
+      });
+
+      const response = await request(app)
+        .patch(`/tasks/${task.id}/assign`)
+        .send({
+          assignee: '',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('error');
+    });
+
+    test('returns 400 when assignee is missing', async () => {
+      const task = taskService.create({
+        title: 'Assign Me',
+      });
+
+      const response = await request(app)
+        .patch(`/tasks/${task.id}/assign`)
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('error');
     });
   });
 });
