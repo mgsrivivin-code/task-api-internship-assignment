@@ -142,6 +142,7 @@ describe('taskService', () => {
       expect(taskService.completeTask('does-not-exist')).toBeNull();
     });
   });
+
   describe('getPaginated', () => {
     test('returns the requested number of tasks', () => {
       taskService.create({ title: 'Task 1' });
@@ -175,6 +176,7 @@ describe('taskService', () => {
       expect(taskService.getPaginated(5, 2)).toEqual([]);
     });
   });
+
   describe('getStats', () => {
     test('counts tasks by status', () => {
       taskService.create({ title: 'Todo 1', status: 'todo' });
