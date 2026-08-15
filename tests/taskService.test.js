@@ -142,4 +142,86 @@ describe('taskService', () => {
       expect(taskService.completeTask('does-not-exist')).toBeNull();
     });
   });
+  describe('getPaginated', () => {
+    test('returns the requested number of tasks', () => {
+      taskService.create({ title: 'Task 1' });
+      taskService.create({ title: 'Task 2' });
+      taskService.create({ title: 'Task 3' });
+      taskService.create({ title: 'Task 4' });
+
+      const result = taskService.getPaginated(0, 2);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].title).toBe('Task 1');
+      expect(result[1].title).toBe('Task 2');
+    });
+
+    test('returns the next page of tasks', () => {
+      taskService.create({ title: 'Task 1' });
+      taskService.create({ title: 'Task 2' });
+      taskService.create({ title: 'Task 3' });
+      taskService.create({ title: 'Task 4' });
+
+      const result = taskService.getPaginated(1, 2);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].title).toBe('Task 3');
+      expect(result[1].title).toBe('Task 4');
+    });
+
+    test('returns an empty array when the page is beyond the available tasks', () => {
+      taskService.create({ title: 'Task 1' });
+
+      expect(taskService.getPaginated(5, 2)).toEqual([]);
+    });
+  });
+  describe('getStats', () => {
+    test('counts tasks by status', () => {
+      taskService.create({ title: 'Todo 1', status: 'todo' });
+      taskService.create({ title: 'Todo 2', status: 'todo' });
+      taskService.create({ title: 'Progress', status: 'in_progress' });
+      taskService.create({ title: 'Done', status: 'done' });
+
+      const stats = taskService.getStats();
+
+      expect(stats.todo).toBe(2);
+      expect(stats.in_progress).toBe(1);
+      expect(stats.done).toBe(1);
+      expect(stats.overdue).toBe(0);
+    });
+
+    test('counts overdue incomplete tasks', () => {
+      taskService.create({
+        title: 'Overdue task',
+        status: 'todo',
+        dueDate: '2020-01-01T00:00:00.000Z',
+      });
+
+      const stats = taskService.getStats();
+
+      expect(stats.overdue).toBe(1);
+    });
+
+    test('does not count completed overdue tasks as overdue', () => {
+      taskService.create({
+        title: 'Completed old task',
+        status: 'done',
+        dueDate: '2020-01-01T00:00:00.000Z',
+      });
+
+      const stats = taskService.getStats();
+
+      expect(stats.done).toBe(1);
+      expect(stats.overdue).toBe(0);
+    });
+
+    test('returns zero counts when there are no tasks', () => {
+      expect(taskService.getStats()).toEqual({
+        todo: 0,
+        in_progress: 0,
+        done: 0,
+        overdue: 0,
+      });
+    });
+  });
 });
