@@ -21,6 +21,7 @@ const getStats = () => {
     in_progress: 0,
     done: 0,
   };
+
   let overdue = 0;
 
   tasks.forEach((t) => {
@@ -37,7 +38,10 @@ const getStats = () => {
     }
   });
 
-  return { ...counts, overdue };
+  return {
+    ...counts,
+    overdue,
+  };
 };
 
 const create = ({
@@ -59,6 +63,7 @@ const create = ({
   };
 
   tasks.push(task);
+
   return task;
 };
 
@@ -75,6 +80,26 @@ const update = (id, fields) => {
   };
 
   tasks[index] = updated;
+
+  return updated;
+};
+
+const assignTask = (id, assignee) => {
+  const task = findById(id);
+
+  if (!task) {
+    return null;
+  }
+
+  const updated = {
+    ...task,
+    assignee,
+  };
+
+  const index = tasks.findIndex((t) => t.id === id);
+
+  tasks[index] = updated;
+
   return updated;
 };
 
@@ -86,6 +111,7 @@ const remove = (id) => {
   }
 
   tasks.splice(index, 1);
+
   return true;
 };
 
@@ -104,6 +130,7 @@ const completeTask = (id) => {
   };
 
   const index = tasks.findIndex((t) => t.id === id);
+
   tasks[index] = updated;
 
   return updated;
@@ -121,6 +148,7 @@ module.exports = {
   getStats,
   create,
   update,
+  assignTask,
   remove,
   completeTask,
   _reset,
