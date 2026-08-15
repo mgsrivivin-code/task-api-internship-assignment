@@ -66,4 +66,30 @@ describe('Task API', () => {
       expect(response.body).toEqual([]);
     });
   });
+    describe('GET /tasks pagination', () => {
+    test('returns paginated results', async () => {
+      taskService.create({ title: 'Task 1' });
+      taskService.create({ title: 'Task 2' });
+      taskService.create({ title: 'Task 3' });
+      taskService.create({ title: 'Task 4' });
+
+      const response = await request(app)
+        .get('/tasks')
+        .query({ page: 1, limit: 2 });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(2);
+    });
+
+    test('returns an empty array when page exceeds available tasks', async () => {
+      taskService.create({ title: 'Task 1' });
+
+      const response = await request(app)
+        .get('/tasks')
+        .query({ page: 10, limit: 2 });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([]);
+    });
+  });
 });
